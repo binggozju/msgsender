@@ -4,7 +4,7 @@ public class Mail implements Message {
 	
 	private String subject;
 	private String to;
-	private String body;
+	private String content;
 	
 	public String getSubject() {
 		return subject;
@@ -22,12 +22,12 @@ public class Mail implements Message {
 		this.to = to;
 	}
 	
-	public String getBody() {
-		return body;
+	public String getContent() {
+		return content;
 	}
 	
-	public void setBody(String body) {
-		this.body = body;
+	public void setContent(String content) {
+		this.content = content;
 	}
 	
 	@Override

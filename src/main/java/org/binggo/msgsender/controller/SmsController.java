@@ -10,46 +10,45 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import org.binggo.msgsender.domain.Mail;
-import org.binggo.msgsender.service.MailSenderService;
+import org.binggo.msgsender.domain.Sms;
+import org.binggo.msgsender.domain.Weixin;
+import org.binggo.msgsender.service.SmsSenderService;
 import org.binggo.msgsender.tools.FeedBack;
 import org.binggo.msgsender.tools.SendResult;
 
 @RestController
-@RequestMapping("/mail")
-public class MailController {
+@RequestMapping("/sms")
+public class SmsController {
+	private static final Logger logger = LoggerFactory.getLogger(SmsController.class);
 	
-	private static final Logger logger = LoggerFactory.getLogger(MailController.class);
-
-	private MailSenderService mailSenderService;
+	private SmsSenderService smsSenderService;
 	
 	@Autowired
-	public void setMailSenderService(MailSenderService mailSenderService) {
-		this.mailSenderService = mailSenderService;
+	public void setSmsSenderService(SmsSenderService smsSenderService) {
+		this.smsSenderService = smsSenderService;
 	}
 	
 	/**
-	 * @param mail
+	 * @param sms
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/sync", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleSyncMail(@RequestBody Mail mail) throws Exception {
-		logger.info("Receive a sync mail request: " + mail.toString());
+	public @ResponseBody FeedBack handleSyncSms(@RequestBody Sms sms) throws Exception {
+		logger.info("Receive a sync sms request: " + sms.toString());
 		
-		SendResult ret = mailSenderService.sendSyncMessage(mail);
+		SendResult ret = smsSenderService.sendSyncMessage(sms);
 		if (ret == SendResult.SUCCESS) {
 			return new FeedBack(0, "ok");
 		} else {
-			return new FeedBack(1, "fail to send the mail");
+			return new FeedBack(1, "fail to send the sms");
 		}
-		
 	}
 
 	@RequestMapping(value="/async", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleAsyncMail(@RequestBody Mail mail) throws Exception {
-		logger.info("Receive a async mail request: " + mail.toString());
+	public @ResponseBody FeedBack handleAsyncSms(@RequestBody Sms sms) throws Exception {
+		logger.info("Receive a async sms request: " + sms.toString());
 
-		mailSenderService.sendAsyncMessage(mail);
+		smsSenderService.sendAsyncMessage(sms);
 		return new FeedBack(0, "ok");
 	}
 	

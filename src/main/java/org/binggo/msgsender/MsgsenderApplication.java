@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Client command: curl -H "Accept: application/json" -H "Content-type: application/json" -X POST 
- * -d '{"subject":"test msgsender", "to": "ybzhan@ibenben.com", "body": "greetings from msgsender"}' 
+ * -d '{"subject":"test msgsender", "to": "ybzhan@ibenben.com", "content": "greetings from msgsender"}' 
  * http://localhost:8090/mail/sync
  */
 @SpringBootApplication

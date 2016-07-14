@@ -9,63 +9,62 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 
-import org.binggo.msgsender.domain.Weixin;
+import org.binggo.msgsender.domain.Sms;
 import org.binggo.msgsender.domain.Message;
 import org.binggo.msgsender.tools.SendResult;
 
 @Service
 @Configurable
-public class WeixinSenderService extends AbstractSender {
+public class SmsSenderService extends AbstractSender {
 	
-	private static final Logger logger = LoggerFactory.getLogger(WeixinSenderService.class);
+	private static final Logger logger = LoggerFactory.getLogger(SmsSenderService.class);
 	
-	public WeixinSenderService() {
-		super("weixin-sender");
+	public SmsSenderService() {
+		super("sms-sender");
 	}
 	
 
 	@Override
 	protected Callable<SendResult> getSyncTask(Message message) {
-		if (message != null && message instanceof Weixin) {
-			return new SyncWeixinTask((Weixin) message);
+		if (message != null && message instanceof Sms) {
+			return new SyncSmsTask((Sms) message);
 		} else {
-			logger.error("unvalid weixin object");
+			logger.error("unvalid sms object");
 			return null;
 		}
 	}
 
 	@Override
 	protected Runnable getAsyncTask(Message message) {
-		if (message != null && message instanceof Weixin) {
-			return new AsyncWeixinTask((Weixin) message);
+		if (message != null && message instanceof Sms) {
+			return new AsyncSmsTask((Sms) message);
 		} else {
-			logger.error("unvalid weixin object");
+			logger.error("unvalid sms object");
 			return null;
 		}
 	}
 	
-	
-	private class SyncWeixinTask implements Callable<SendResult> {
-		private Weixin weixin;
+	private class SyncSmsTask implements Callable<SendResult> {
+		private Sms sms;
 		
-		public SyncWeixinTask(Weixin weixin) {
-			this.weixin = weixin;
+		public SyncSmsTask(Sms sms) {
+			this.sms = sms;
 		}
-			
+
 		@Override
 		public SendResult call() throws Exception {
 			// TODO Auto-generated method stub
 			return null;
 		}
-	} 
+	}
 	
-	private class AsyncWeixinTask implements Runnable {
-		private Weixin weixin;
+	private class AsyncSmsTask implements Runnable {
+		private Sms sms;
 		
-		public AsyncWeixinTask(Weixin weixin) {
-			this.weixin = weixin;
+		public AsyncSmsTask(Sms sms) {
+			this.sms = sms;
 		}
-		
+
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub

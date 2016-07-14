@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+
 import org.binggo.msgsender.domain.Mail;
 import org.binggo.msgsender.domain.Message;
 import org.binggo.msgsender.tools.SendResult;
@@ -28,7 +29,7 @@ public class MailSenderService extends AbstractSender {
 	private JavaMailSender mailSender;
 	
 	public MailSenderService() {
-		super("mailsender");
+		super("mail-sender");
 	}
 	
 	@Autowired
@@ -72,7 +73,7 @@ public class MailSenderService extends AbstractSender {
 				helper.setFrom(from);
 				helper.setTo(mail.getTo());
 				helper.setSubject(mail.getSubject());
-				helper.setText(mail.getBody());
+				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
 				return SendResult.SUCCESS;
@@ -100,7 +101,7 @@ public class MailSenderService extends AbstractSender {
 				helper.setFrom(from);
 				helper.setTo(mail.getTo());
 				helper.setSubject(mail.getSubject());
-				helper.setText(mail.getBody());
+				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
 			} catch (MessagingException ex) {

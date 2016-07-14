@@ -10,46 +10,45 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import org.binggo.msgsender.domain.Mail;
-import org.binggo.msgsender.service.MailSenderService;
+import org.binggo.msgsender.domain.Weixin;
+import org.binggo.msgsender.service.WeixinSenderService;
 import org.binggo.msgsender.tools.FeedBack;
 import org.binggo.msgsender.tools.SendResult;
 
 @RestController
-@RequestMapping("/mail")
-public class MailController {
+@RequestMapping("/weixin")
+public class WeixinController {
+	private static final Logger logger = LoggerFactory.getLogger(WeixinController.class);
 	
-	private static final Logger logger = LoggerFactory.getLogger(MailController.class);
-
-	private MailSenderService mailSenderService;
+	private WeixinSenderService weixinSenderService;
 	
 	@Autowired
-	public void setMailSenderService(MailSenderService mailSenderService) {
-		this.mailSenderService = mailSenderService;
+	public void setWeixinSenderService(WeixinSenderService weixinSenderService) {
+		this.weixinSenderService = weixinSenderService;
 	}
 	
 	/**
-	 * @param mail
+	 * @param weixin
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/sync", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleSyncMail(@RequestBody Mail mail) throws Exception {
-		logger.info("Receive a sync mail request: " + mail.toString());
+	public @ResponseBody FeedBack handleSyncWeixin(@RequestBody Weixin weixin) throws Exception {
+		logger.info("Receive a sync weixin request: " + weixin.toString());
 		
-		SendResult ret = mailSenderService.sendSyncMessage(mail);
+		SendResult ret = weixinSenderService.sendSyncMessage(weixin);
 		if (ret == SendResult.SUCCESS) {
 			return new FeedBack(0, "ok");
 		} else {
-			return new FeedBack(1, "fail to send the mail");
+			return new FeedBack(1, "fail to send the weixin");
 		}
 		
 	}
 
 	@RequestMapping(value="/async", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleAsyncMail(@RequestBody Mail mail) throws Exception {
-		logger.info("Receive a async mail request: " + mail.toString());
+	public @ResponseBody FeedBack handleAsyncWeixin(@RequestBody Weixin weixin) throws Exception {
+		logger.info("Receive a async weixin request: " + weixin.toString());
 
-		mailSenderService.sendAsyncMessage(mail);
+		weixinSenderService.sendAsyncMessage(weixin);
 		return new FeedBack(0, "ok");
 	}
 	
