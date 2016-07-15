@@ -2,9 +2,21 @@ package org.binggo.msgsender.domain;
 
 public class Mail implements Message {
 	
+	// required fields, missing some fields may lead to get error response
 	private String subject;
-	private String to;
+	private String to;	// use a semicolon between multiple addresses
 	private String content;
+	
+	// optional fields, null default
+	private String source;
+	
+	public String getSource() {
+		return source;
+	}
+	
+	public void setSource(String source) {
+		this.source = source;
+	}
 	
 	public String getSubject() {
 		return subject;
@@ -32,7 +44,7 @@ public class Mail implements Message {
 	
 	@Override
 	public String toString() {
-		return String.format("Mail [subject=%s, to=%s]", subject, to);
+		return String.format("Mail [source=%s, subject=%s, to=%s]", source, subject, to);
 	}
 	
 }

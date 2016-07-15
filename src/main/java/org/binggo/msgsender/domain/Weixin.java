@@ -2,15 +2,27 @@ package org.binggo.msgsender.domain;
 
 public class Weixin implements Message {
 	
-	private String openId;
+	// required fields, missing some fields may lead to get error response
+	private String receivers;	// use a semicolon between multiple receivers
 	private String content;
 	
-	public String getOpenId() {
-		return openId;
+	// optional fields, null default
+	private String source;
+	
+	public String getSource() {
+		return source;
 	}
 	
-	public void setOpenId(String openId) {
-		this.openId = openId;
+	public void setSource(String source) {
+		this.source = source;
+	}
+	
+	public String getReceivers() {
+		return receivers;
+	}
+	
+	public void setReceivers(String receivers) {
+		this.receivers = receivers;
 	}
 	
 	public String getContent() {
@@ -23,7 +35,7 @@ public class Weixin implements Message {
 	
 	@Override
 	public String toString() {
-		return String.format("Weinxin [openId=%s]", openId);
+		return String.format("Weinxin [soruce=%s, receivers=%s]", source, receivers);
 	}
 
 }

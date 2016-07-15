@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import org.binggo.msgsender.domain.Mail;
 import org.binggo.msgsender.service.MailSenderService;
@@ -33,24 +32,29 @@ public class MailController {
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/sync", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleSyncMail(@RequestBody Mail mail) throws Exception {
+	public String handleSyncMail(@RequestBody Mail mail) throws Exception {
 		logger.info("Receive a sync mail request: " + mail.toString());
 		
-		SendResult ret = mailSenderService.sendSyncMessage(mail);
-		if (ret == SendResult.SUCCESS) {
-			return new FeedBack(0, "ok");
-		} else {
-			return new FeedBack(1, "fail to send the mail");
-		}
+		if (mail.getSubject() == null || mail.getTo() == null || mail.getContent() == null) {
+			logger.error("missing some fields in sync mail request");
+			return FeedBack.MISSING_FIELDS.toString();
+		} 
 		
+		SendResult ret = mailSenderService.sendSyncMessage(mail);
+		return ret.convertToFeedBack().toString();
 	}
 
 	@RequestMapping(value="/async", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleAsyncMail(@RequestBody Mail mail) throws Exception {
+	public String handleAsyncMail(@RequestBody Mail mail) throws Exception {
 		logger.info("Receive a async mail request: " + mail.toString());
+		
+		if (mail.getSubject() == null || mail.getTo() == null || mail.getContent() == null) {
+			logger.error("missing some fields in async mail request");
+			return FeedBack.MISSING_FIELDS.toString();
+		} 
 
 		mailSenderService.sendAsyncMessage(mail);
-		return new FeedBack(0, "ok");
+		return FeedBack.OK.toString();
 	}
 	
 }

@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import org.binggo.msgsender.domain.Weixin;
 import org.binggo.msgsender.service.WeixinSenderService;
@@ -32,24 +31,29 @@ public class WeixinController {
 	 * @throws Exception
 	 */
 	@RequestMapping(value="/sync", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleSyncWeixin(@RequestBody Weixin weixin) throws Exception {
+	public String handleSyncWeixin(@RequestBody Weixin weixin) throws Exception {
 		logger.info("Receive a sync weixin request: " + weixin.toString());
 		
-		SendResult ret = weixinSenderService.sendSyncMessage(weixin);
-		if (ret == SendResult.SUCCESS) {
-			return new FeedBack(0, "ok");
-		} else {
-			return new FeedBack(1, "fail to send the weixin");
+		if (weixin.getReceivers() == null || weixin.getContent() == null) {
+			logger.error("missing some fields in sync weixin request");
+			return FeedBack.MISSING_FIELDS.toString();
 		}
 		
+		SendResult ret = weixinSenderService.sendSyncMessage(weixin);
+		return ret.convertToFeedBack().toString();
 	}
 
 	@RequestMapping(value="/async", method=RequestMethod.POST, consumes={"application/json"})
-	public @ResponseBody FeedBack handleAsyncWeixin(@RequestBody Weixin weixin) throws Exception {
+	public String handleAsyncWeixin(@RequestBody Weixin weixin) throws Exception {
 		logger.info("Receive a async weixin request: " + weixin.toString());
+		
+		if (weixin.getReceivers() == null || weixin.getContent() == null) {
+			logger.error("missing some fields in async weixin request");
+			return FeedBack.MISSING_FIELDS.toString();
+		}
 
 		weixinSenderService.sendAsyncMessage(weixin);
-		return new FeedBack(0, "ok");
+		return FeedBack.OK.toString();
 	}
 	
 }

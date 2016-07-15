@@ -1,10 +1,23 @@
 package org.binggo.msgsender.tools;
 
-public class FeedBack {
-	private int retCode;
-	private String retMessage;
+public enum FeedBack {
+	OK (0, "ok"),
 	
-	public FeedBack(int retCode, String retMessage) {
+	// inner error of msgsender
+	FAILURE	(1, "fail to send the message"),
+	TIMEOUT	(2, "timeout to send"),
+	INTERRUPT (3, "sending has been interrupted"),
+	
+	// error cause by callers
+	MISSING_FIELDS (20, "missing some fields"),
+	
+	// other reasons
+	UNKNOWN (999, "unknown result");
+
+	private final int retCode;
+	private final String retMessage;
+	
+	FeedBack(int retCode, String retMessage) {
 		this.retCode = retCode;
 		this.retMessage = retMessage;
 	}
@@ -15,5 +28,10 @@ public class FeedBack {
 	
 	public String getRetMessage() {
 		return retMessage;
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("{\"retcode\": \"%s\", \"retmessage\": \"%s\"}", retCode, retMessage);
 	}
 }

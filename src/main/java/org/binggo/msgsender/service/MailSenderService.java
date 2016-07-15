@@ -1,7 +1,6 @@
 package org.binggo.msgsender.service;
 
 import java.util.concurrent.Callable;
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,14 +70,20 @@ public class MailSenderService extends AbstractSender {
 				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
 				
 				helper.setFrom(from);
-				helper.setTo(mail.getTo());
-				helper.setSubject(mail.getSubject());
+				helper.setTo(mail.getTo().split(";"));
+				
+				if (mail.getSource() != null) {
+					helper.setSubject(String.format("[%s] %s", mail.getSource(), mail.getSubject()));
+				} else {
+					helper.setSubject(mail.getSubject());
+				}
+				
 				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
-				return SendResult.SUCCESS;
+				return SendResult.OK;
 				
-			} catch (MessagingException ex) {
+			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
 				return SendResult.FAILURE;
 			}
@@ -99,12 +104,18 @@ public class MailSenderService extends AbstractSender {
 				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
 				
 				helper.setFrom(from);
-				helper.setTo(mail.getTo());
-				helper.setSubject(mail.getSubject());
+				helper.setTo(mail.getTo().split(";"));
+				
+				if (mail.getSource() != null) {
+					helper.setSubject(String.format("[%s] %s", mail.getSource(), mail.getSubject()));
+				} else {
+					helper.setSubject(mail.getSubject());
+				}
+				
 				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
-			} catch (MessagingException ex) {
+			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
 			}
 		}
