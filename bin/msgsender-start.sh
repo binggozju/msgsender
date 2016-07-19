@@ -8,9 +8,9 @@ DIR=$(dirname `readlink -m $0`)
 cd $DIR/..; pwd
 
 # configuration of JVM
-# TODO
+JAVA_OPTS=
 
 # configuration of msgsender
-# TODO
+MSGSENDER_OPTS="--spring.config.location=config/msgsender.properties"
 
-exec java -jar target/msgsender-0.0.1-SNAPSHOT.jar
+exec java $JAVA_OPTS -jar target/msgsender-0.0.1-SNAPSHOT.jar $MSGSENDER_OPTS
