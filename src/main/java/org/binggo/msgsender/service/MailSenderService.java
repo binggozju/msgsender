@@ -15,6 +15,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.binggo.msgsender.domain.Mail;
 import org.binggo.msgsender.domain.Message;
 import org.binggo.msgsender.tools.SendResult;
+import org.binggo.msgsender.generate.mapper.MailRecordMapper;
+import org.binggo.msgsender.generate.model.MailRecord;
 
 @Service
 @Configurable
@@ -26,6 +28,9 @@ public class MailSenderService extends AbstractSender {
 	private String from;
 	
 	private JavaMailSender mailSender;
+	
+	@Autowired
+	private MailRecordMapper mailRecordMapper;
 	
 	public MailSenderService() {
 		super("mail-sender");
@@ -56,6 +61,28 @@ public class MailSenderService extends AbstractSender {
 		}
 	}
 
+	private static MailRecord generateMailRecord(Mail mail, int sendResult) {
+		MailRecord record = new MailRecord();
+		
+		record.setSubject(mail.getSubject());
+		record.setReceivers(mail.getReceivers());
+		record.setContent(mail.getContent());
+		if (mail.getSource() != null) {
+			record.setSource(mail.getSource());
+		} else {
+			record.setSource(SenderConstants.DEFAULT_SOURCE);
+		}
+		if (mail.getSendTime() != 0) {
+			record.setSendTime(mail.getSendTime());
+		} else {
+			long nowTime = System.currentTimeMillis() / 1000;
+			record.setSendTime((int) nowTime);
+		}
+		record.setSendResult((byte) sendResult);
+		
+		return record;
+	}
+	
 	private class SyncMailTask implements Callable<SendResult> {
 		private Mail mail;
 		
@@ -67,24 +94,36 @@ public class MailSenderService extends AbstractSender {
 		public SendResult call() throws Exception {
 			MimeMessage mimeMessage = mailSender.createMimeMessage();
 			try {
+				// send the mail
 				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
 				
 				helper.setFrom(from);
-				helper.setTo(mail.getTo().split(";"));
+				helper.setTo(mail.getReceivers().split(";"));
 				
 				if (mail.getSource() != null) {
 					helper.setSubject(String.format("[%s] %s", mail.getSource(), mail.getSubject()));
 				} else {
-					helper.setSubject(mail.getSubject());
+					helper.setSubject(String.format("[%s] %s", SenderConstants.DEFAULT_SOURCE, mail.getSubject()));
 				}
 				
 				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
+				logger.info("send the sync mail successfully");
+				
+				// save the info about this mail to mysql
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
+				mailRecordMapper.insert(record);
+				
 				return SendResult.OK;
 				
 			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
+				
+				// save the info about this mail to mysql
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
+				mailRecordMapper.insert(record);
+				
 				return SendResult.FAILURE;
 			}
 		}
@@ -101,22 +140,33 @@ public class MailSenderService extends AbstractSender {
 		public void run() {
 			MimeMessage mimeMessage = mailSender.createMimeMessage();
 			try {
+				// send the mail
 				MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
 				
 				helper.setFrom(from);
-				helper.setTo(mail.getTo().split(";"));
+				helper.setTo(mail.getReceivers().split(";"));
 				
 				if (mail.getSource() != null) {
 					helper.setSubject(String.format("[%s] %s", mail.getSource(), mail.getSubject()));
 				} else {
-					helper.setSubject(mail.getSubject());
+					helper.setSubject(String.format("[%s] %s", SenderConstants.DEFAULT_SOURCE, mail.getSubject()));
 				}
 				
 				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
+				logger.info("send the async mail successfully");
+				
+				// save the info about this mail to mysql
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
+				mailRecordMapper.insert(record);
+				
 			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
+				
+				// save the info about this mail to mysql
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
+				mailRecordMapper.insert(record);
 			}
 		}
 	}

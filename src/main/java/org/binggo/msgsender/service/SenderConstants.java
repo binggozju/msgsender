@@ -5,6 +5,8 @@ public final class SenderConstants {
 	
 	public static int MAX_RETRY_TIMES = 3;
 	
+	public static String DEFAULT_SOURCE = "Monitor Platform";
+	
 	private SenderConstants() {
 		// disable explicit object creation
 	}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.binggo.msgsender.generate.mapper.WeixinRecordMapper" >
+  <resultMap id="BaseResultMap" type="org.binggo.msgsender.generate.model.WeixinRecord" >
+    <result column="receivers" property="receivers" jdbcType="VARCHAR" />
+    <result column="content" property="content" jdbcType="VARCHAR" />
+    <result column="source" property="source" jdbcType="VARCHAR" />
+    <result column="send_time" property="sendTime" jdbcType="INTEGER" />
+    <result column="send_result" property="sendResult" jdbcType="TINYINT" />
+  </resultMap>
+  <insert id="insert" parameterType="org.binggo.msgsender.generate.model.WeixinRecord" >
+    insert into weixin_records (receivers, content, source, 
+      send_time, send_result)
+    values (#{receivers,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, #{source,jdbcType=VARCHAR}, 
+      #{sendTime,jdbcType=INTEGER}, #{sendResult,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" parameterType="org.binggo.msgsender.generate.model.WeixinRecord" >
+    insert into weixin_records
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="receivers != null" >
+        receivers,
+      </if>
+      <if test="content != null" >
+        content,
+      </if>
+      <if test="source != null" >
+        source,
+      </if>
+      <if test="sendTime != null" >
+        send_time,
+      </if>
+      <if test="sendResult != null" >
+        send_result,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="receivers != null" >
+        #{receivers,jdbcType=VARCHAR},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="source != null" >
+        #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="sendTime != null" >
+        #{sendTime,jdbcType=INTEGER},
+      </if>
+      <if test="sendResult != null" >
+        #{sendResult,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+</mapper>

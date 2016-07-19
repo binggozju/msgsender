@@ -1,10 +1,20 @@
 package org.binggo.msgsender.tools;
 
 public enum SendResult {
-	OK, 
-	INTERRUPT, 
-	TIMEOUT,
-	FAILURE;
+	OK (0), 
+	FAILURE (1),
+	TIMEOUT (2),
+	INTERRUPT (3);
+	
+	private final int code;
+	
+	SendResult(int code) {
+		this.code = code;
+	}
+	
+	public int getCode () {
+		return code;
+	}
 	
 	public FeedBack convertToFeedBack() {
 		switch (this) {

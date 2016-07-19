@@ -24,7 +24,7 @@ public abstract class AbstractSender implements Sender {
 	
 	public AbstractSender(String name) {
 		this.name = name;
-		executor = new SimpleAsyncTaskExecutor(this.name);
+		executor = new SimpleAsyncTaskExecutor(this.name); // TODO: 是否有其它更佳的线程池
 	}
 
 	@Override

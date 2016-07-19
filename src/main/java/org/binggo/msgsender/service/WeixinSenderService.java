@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -22,6 +23,8 @@ import com.google.gson.JsonObject;
 import org.binggo.msgsender.domain.Weixin;
 import org.binggo.msgsender.domain.Message;
 import org.binggo.msgsender.tools.SendResult;
+import org.binggo.msgsender.generate.mapper.WeixinRecordMapper;
+import org.binggo.msgsender.generate.model.WeixinRecord;
 
 @Service
 @Configurable
@@ -45,6 +48,9 @@ public class WeixinSenderService extends AbstractSender {
 	
 	private HttpClient client;
 	private JsonParser jsonParser;
+	
+	@Autowired
+	private WeixinRecordMapper weixinRecordMapper;
 	
 	public WeixinSenderService() {
 		super("weixin-sender");
@@ -144,6 +150,29 @@ public class WeixinSenderService extends AbstractSender {
 		}
 	}
 	
+	private static WeixinRecord generateWeixinRecord(Weixin weixin, int sendResult) {
+		WeixinRecord record = new WeixinRecord();
+		
+		record.setReceivers(weixin.getReceivers());
+		record.setContent(weixin.getContent());
+		
+		if (weixin.getSource() != null) {
+			record.setSource(weixin.getSource());
+		} else {
+			record.setSource(SenderConstants.DEFAULT_SOURCE);
+		}
+		
+		if (weixin.getSendTime() != 0) {
+			record.setSendTime(weixin.getSendTime());
+		} else {
+			long nowTime = System.currentTimeMillis() / 1000;
+			record.setSendTime((int) nowTime);
+		}
+		record.setSendResult((byte) sendResult);
+		
+		return record;
+	}
+	
 	
 	private class SyncWeixinTask implements Callable<SendResult> {
 		private Weixin weixin;
@@ -154,17 +183,21 @@ public class WeixinSenderService extends AbstractSender {
 			
 		@Override
 		public SendResult call() throws Exception {
+			// send the weixin message
 			String toUser = weixin.getReceivers().replace(';', '|');
 			String content = "";
 			if (weixin.getSource() != null) {
 				content = String.format("[%s] %s", weixin.getSource(), weixin.getContent());
 			} else {
-				content = weixin.getContent();
+				content = String.format("[%s] %s", SenderConstants.DEFAULT_SOURCE, weixin.getContent());
 			}
 			
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
 				logger.error("fail to send the sync weixin message");
+				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				weixinRecordMapper.insert(record);
+				
 				return SendResult.FAILURE;
 			}
 					
@@ -172,12 +205,23 @@ public class WeixinSenderService extends AbstractSender {
 				JsonObject jsonObj = jsonParser.parse(response).getAsJsonObject();
 				int errCode = jsonObj.get("errcode").getAsInt();
 				if (errCode == 0) {
+					logger.info("send the async weixin successfully");
+					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
+					weixinRecordMapper.insert(record);
+					
 					return SendResult.OK;
 				} else {
+					logger.error("get an error response from weixin server");
+					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+					weixinRecordMapper.insert(record);
+					
 					return SendResult.FAILURE;
 				}
 			} catch (JsonSyntaxException ex) {
 				logger.error("get an unvalid response of sending weixin message: " + ex.getMessage());
+				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				weixinRecordMapper.insert(record);
+				
 				return SendResult.FAILURE;
 			}
 		}
@@ -193,11 +237,19 @@ public class WeixinSenderService extends AbstractSender {
 		@Override
 		public void run() {
 			String toUser = weixin.getReceivers().replace(';', '|');
-			String content = String.format("[%s] %s", weixin.getSource(), weixin.getContent());
+			String content = "";
+			if (weixin.getSource() != null) {
+				content = String.format("[%s] %s", weixin.getSource(), weixin.getContent());
+			} else {
+				content = String.format("[%s] %s", SenderConstants.DEFAULT_SOURCE, weixin.getContent());
+			}
 			
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
 				logger.error("fail to send the async weixin message");
+				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				weixinRecordMapper.insert(record);
+				
 				return;
 			}
 			
@@ -206,9 +258,19 @@ public class WeixinSenderService extends AbstractSender {
 				int errCode = jsonObj.get("errcode").getAsInt();
 				if (errCode != 0) {
 					logger.error("fail to send the async weixin message");
+					
+					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+					weixinRecordMapper.insert(record);
+				} else {
+					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
+					weixinRecordMapper.insert(record);
 				}
+				
 			} catch (JsonSyntaxException ex) {
 				logger.error("get an unvalid response of sending weixin message: " + ex.getMessage());
+				
+				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				weixinRecordMapper.insert(record);
 			}
 		}
 	}

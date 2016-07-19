@@ -35,11 +35,12 @@ public class MailController {
 	public String handleSyncMail(@RequestBody Mail mail) throws Exception {
 		logger.info("Receive a sync mail request: " + mail.toString());
 		
-		if (mail.getSubject() == null || mail.getTo() == null || mail.getContent() == null) {
+		if (mail.getSubject() == null || mail.getReceivers() == null || mail.getContent() == null) {
 			logger.error("missing some fields in sync mail request");
 			return FeedBack.MISSING_FIELDS.toString();
 		} 
 		
+		// TODO: sendSyncMessage线程安全考虑
 		SendResult ret = mailSenderService.sendSyncMessage(mail);
 		return ret.convertToFeedBack().toString();
 	}
@@ -48,7 +49,7 @@ public class MailController {
 	public String handleAsyncMail(@RequestBody Mail mail) throws Exception {
 		logger.info("Receive a async mail request: " + mail.toString());
 		
-		if (mail.getSubject() == null || mail.getTo() == null || mail.getContent() == null) {
+		if (mail.getSubject() == null || mail.getReceivers() == null || mail.getContent() == null) {
 			logger.error("missing some fields in async mail request");
 			return FeedBack.MISSING_FIELDS.toString();
 		} 
