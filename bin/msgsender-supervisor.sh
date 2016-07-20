@@ -6,8 +6,8 @@
 
 
 # configuration of log file
-SUPERVISOR_LOG_FILE=/data0/logs/msgsender/monitor.log
-MSGSENDER_LOG_FILE=/data0/logs/msgsender/msgsender.log
+SUPERVISOR_LOG_FILE=/data0/logs/msgsender/supervisor.log
+MSGSENDER_LOG_FILE=/dev/null
 
 function log() {
     local log_level=$1

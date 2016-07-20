@@ -39,7 +39,7 @@ public class Sms implements Message {
 	}
 	
 	public String toString() {
-		return String.format("Sms [phone=%s]", phone);
+		return String.format("Sms [phone=%s, content=%s]", phone, content);
 	}
 	
 }

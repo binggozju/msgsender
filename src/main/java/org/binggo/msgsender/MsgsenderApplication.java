@@ -15,6 +15,6 @@ public class MsgsenderApplication
 	public static void main(String[] args) {
 		SpringApplication.run(MsgsenderApplication.class, args);
 		
-		logger.info("msgsender service has been started successfully.");
+		logger.info("start msgsender service successfully.");
 	}
 }

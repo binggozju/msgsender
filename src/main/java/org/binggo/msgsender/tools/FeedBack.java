@@ -7,6 +7,7 @@ public enum FeedBack {
 	FAILURE	(1, "fail to send the message"),
 	TIMEOUT	(2, "timeout to send"),
 	INTERRUPT (3, "sending has been interrupted"),
+	NOTSUPPORT (4, "this endpoint has not been suppported by now"),
 	
 	// error cause by callers
 	MISSING_FIELDS (20, "missing some fields"),

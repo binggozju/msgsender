@@ -5,9 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
 
 import org.binggo.msgsender.domain.Sms;
 import org.binggo.msgsender.domain.Message;
@@ -45,6 +43,7 @@ public class SmsSenderService extends AbstractSender {
 	}
 	
 	private class SyncSmsTask implements Callable<SendResult> {
+		@SuppressWarnings("unused")
 		private Sms sms;
 		
 		public SyncSmsTask(Sms sms) {
@@ -59,6 +58,7 @@ public class SmsSenderService extends AbstractSender {
 	}
 	
 	private class AsyncSmsTask implements Runnable {
+		@SuppressWarnings("unused")
 		private Sms sms;
 		
 		public AsyncSmsTask(Sms sms) {

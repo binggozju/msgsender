@@ -76,7 +76,7 @@ public class WeixinSenderService extends AbstractSender {
 			client.executeMethod(post);
 			response = new String(post.getResponseBodyAsString().getBytes("gbk"));
 		} catch(IOException ex) {
-			logger.error("fail to get access token: " + ex.getMessage());
+			logger.error("execute post method to get access token failed: " + ex.getMessage());
 			post.releaseConnection();
 			return "";
 		}
@@ -87,7 +87,7 @@ public class WeixinSenderService extends AbstractSender {
 			post.releaseConnection();
 			return accessToken;
 		} catch (JsonSyntaxException ex) {
-			logger.error("get an unvalid access token: " + ex.getMessage());
+			logger.error("fail to parse http response of getting access token: " + ex.getMessage());
 			post.releaseConnection();
 			return "";
 		}
@@ -97,6 +97,7 @@ public class WeixinSenderService extends AbstractSender {
 	private String sendMessage(String toUser, String toParty, String toTag, String content) {
 		String accessToken = getAccessToken();
 		if (accessToken.isEmpty()) {
+			logger.error("fail to get the access token");
 			return "";
 		}
 		
@@ -123,7 +124,7 @@ public class WeixinSenderService extends AbstractSender {
 	    	post.releaseConnection();
 	    	return response;
 	    } catch (IOException ex) {
-			logger.error("fail to post the message: " + ex.getMessage());
+			logger.error("fail to send the weixin message: " + ex.getMessage());
 			post.releaseConnection();
 			return "";
 	    }
@@ -194,9 +195,10 @@ public class WeixinSenderService extends AbstractSender {
 			
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
-				logger.error("fail to send the sync weixin message");
+				logger.error("fail to send the async weixin message");
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
+				logger.info("save the async weixin successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -208,12 +210,14 @@ public class WeixinSenderService extends AbstractSender {
 					logger.info("send the async weixin successfully");
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
 					weixinRecordMapper.insert(record);
+					logger.info("save the async weixin successfully");
 					
 					return SendResult.OK;
 				} else {
 					logger.error("get an error response from weixin server");
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 					weixinRecordMapper.insert(record);
+					logger.info("save the async weixin successfully");
 					
 					return SendResult.FAILURE;
 				}
@@ -221,6 +225,7 @@ public class WeixinSenderService extends AbstractSender {
 				logger.error("get an unvalid response of sending weixin message: " + ex.getMessage());
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
+				logger.info("save the async weixin successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -246,9 +251,10 @@ public class WeixinSenderService extends AbstractSender {
 			
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
-				logger.error("fail to send the async weixin message");
+				logger.error("fail to send the sync weixin message");
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
+				logger.info("save the sync weixin message successfully");
 				
 				return;
 			}
@@ -261,9 +267,11 @@ public class WeixinSenderService extends AbstractSender {
 					
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 					weixinRecordMapper.insert(record);
+					logger.info("save the sync weixin message successfully");
 				} else {
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
 					weixinRecordMapper.insert(record);
+					logger.info("save the sync weixin message successfully");
 				}
 				
 			} catch (JsonSyntaxException ex) {
@@ -271,6 +279,7 @@ public class WeixinSenderService extends AbstractSender {
 				
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
+				logger.info("save the sync weixin message successfully");
 			}
 		}
 	}

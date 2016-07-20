@@ -48,7 +48,7 @@ public class Mail implements Message {
 	
 	@Override
 	public String toString() {
-		return String.format("Mail [source=%s, subject=%s, receivers=%s]", source, subject, receivers);
+		return String.format("Mail [subject=%s, receivers=%s, source=%s]", subject, receivers, source);
 	}
 	
 }

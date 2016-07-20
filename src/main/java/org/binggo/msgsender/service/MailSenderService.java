@@ -109,11 +109,12 @@ public class MailSenderService extends AbstractSender {
 				helper.setText(mail.getContent());
 				
 				mailSender.send(mimeMessage);
-				logger.info("send the sync mail successfully");
+				logger.info("send the sync mail successfully: " + mail.toString());
 				
 				// save the info about this mail to mysql
 				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
 				mailRecordMapper.insert(record);
+				logger.info("save the sync mail record successfully");
 				
 				return SendResult.OK;
 				
@@ -123,6 +124,7 @@ public class MailSenderService extends AbstractSender {
 				// save the info about this mail to mysql
 				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
 				mailRecordMapper.insert(record);
+				logger.info("save the sync mail record successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -160,6 +162,7 @@ public class MailSenderService extends AbstractSender {
 				// save the info about this mail to mysql
 				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
 				mailRecordMapper.insert(record);
+				logger.info("save the async mail record successfully");
 				
 			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
@@ -167,6 +170,7 @@ public class MailSenderService extends AbstractSender {
 				// save the info about this mail to mysql
 				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
 				mailRecordMapper.insert(record);
+				logger.info("save the async mail record successfully");
 			}
 		}
 	}

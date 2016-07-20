@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.binggo.msgsender.domain.Sms;
 import org.binggo.msgsender.service.SmsSenderService;
 import org.binggo.msgsender.tools.FeedBack;
-import org.binggo.msgsender.tools.SendResult;
 
 @RestController
 @RequestMapping("/sms")
 public class SmsController {
 	private static final Logger logger = LoggerFactory.getLogger(SmsController.class);
 	
+	@SuppressWarnings("unused")
 	private SmsSenderService smsSenderService;
 	
 	@Autowired
@@ -39,8 +39,9 @@ public class SmsController {
 			return FeedBack.MISSING_FIELDS.toString();
 		}
 		
-		SendResult ret = smsSenderService.sendSyncMessage(sms);
-		return ret.convertToFeedBack().toString();
+		return FeedBack.NOTSUPPORT.toString();
+		//SendResult ret = smsSenderService.sendSyncMessage(sms);
+		//return ret.convertToFeedBack().toString();
 	}
 
 	@RequestMapping(value="/async", method=RequestMethod.POST, consumes={"application/json"})
@@ -52,8 +53,9 @@ public class SmsController {
 			return FeedBack.MISSING_FIELDS.toString();
 		}
 
-		smsSenderService.sendAsyncMessage(sms);
-		return FeedBack.OK.toString();
+		return FeedBack.NOTSUPPORT.toString();
+		//smsSenderService.sendAsyncMessage(sms);
+		//return FeedBack.OK.toString();
 	}
 	
 }
