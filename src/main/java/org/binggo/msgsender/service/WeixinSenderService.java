@@ -100,6 +100,7 @@ public class WeixinSenderService extends AbstractSender {
 			logger.error("fail to get the access token");
 			return "";
 		}
+		logger.debug(String.format("Access Token: %s", accessToken));
 		
 		String url = String.format(SEND_MESSAGE_URL, accessToken);
 		PostMethod post = new PostMethod(url);

@@ -6,8 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.binggo.msgsender.domain.Message;
 import org.binggo.msgsender.tools.SendResult;
 
@@ -15,16 +14,22 @@ public abstract class AbstractSender implements Sender {
 	
 	private String name;
 	
-	private AsyncTaskExecutor executor;
+	private ThreadPoolTaskExecutor executor;
+	
+	{
+		executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(SenderConstants.CORE_POOL_SIZE);
+		executor.setMaxPoolSize(SenderConstants.MAX_POOL_SIZE);
+		executor.setKeepAliveSeconds(SenderConstants.KEEPALIVE_SECONDS);
+		executor.setQueueCapacity(SenderConstants.QUEUE_CAPACITY);
+	}
 	
 	public AbstractSender() {
 		name = "sender";
-		executor = new SimpleAsyncTaskExecutor(name);
 	}
 	
 	public AbstractSender(String name) {
 		this.name = name;
-		executor = new SimpleAsyncTaskExecutor(this.name); // TODO: 是否有其它更佳的线程池
 	}
 
 	@Override

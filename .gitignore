@@ -1,5 +1,6 @@
 logs/*
 target/*
+config/msgsender.properties
 
 .classpath
 .project

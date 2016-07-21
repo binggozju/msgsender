@@ -40,7 +40,6 @@ public class MailController {
 			return FeedBack.MISSING_FIELDS.toString();
 		} 
 		
-		// TODO: sendSyncMessage线程安全考虑
 		SendResult ret = mailSenderService.sendSyncMessage(mail);
 		return ret.convertToFeedBack().toString();
 	}
