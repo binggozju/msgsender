@@ -7,11 +7,11 @@ HOST=http://localhost:8090
 
 mail_msg=$(cat <<EOF
 {
-"subject": "监控告警",
+"subject": "Monitor Mail",
 "receivers": "ybzhan@ibenben.com",
 "content": "this is a mail message from msgsender",
 
-"source": "监控平台"
+"source": "Monitor Platform"
 }
 EOF
 )
@@ -21,7 +21,7 @@ weixin_msg=$(cat <<EOF
 "receivers": "ybzhan",
 "content": "this is a weixin message",
 
-"source": "监控平台"
+"source": "Monitor Platform"
 }
 EOF
 )
