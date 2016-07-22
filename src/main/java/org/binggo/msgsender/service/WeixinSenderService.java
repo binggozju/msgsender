@@ -1,5 +1,8 @@
 package org.binggo.msgsender.service;
 
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
@@ -13,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.DefaultHttpParams;
 
@@ -35,7 +40,7 @@ public class WeixinSenderService extends AbstractSender {
 	private static final String ACCESS_TOKEN_URL = "https://qyapi.weixin.qq.com/cgi-bin/"
 			+ "gettoken";
 	private static final String SEND_MESSAGE_URL = "https://qyapi.weixin.qq.com/cgi-bin/"
-			+ "message/send?access_token={0}";
+			+ "message/send?access_token=%s";
 	
 	@Value("${weixin.corpid}")
 	private String corpId;		// 企业id
@@ -44,7 +49,7 @@ public class WeixinSenderService extends AbstractSender {
 	private String corpSecret;	// 管理组的凭证秘钥
 	
 	@Value("${weixin.agentid}")
-	private String agentId;	// 企业应用的ID
+	private String agentId;	// 企业应用的ID，一般使用“企业小助手”，对应的id为0
 	
 	private HttpClient client;
 	private JsonParser jsonParser;
@@ -107,29 +112,43 @@ public class WeixinSenderService extends AbstractSender {
 		post.releaseConnection();
 		post.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
-			    
-		NameValuePair[] param = {
-				new NameValuePair("touser", toUser),
-				new NameValuePair("toparty", toParty),
-				new NameValuePair("totag", toTag),
-				new NameValuePair("msgtype", "text"),
-				new NameValuePair("agentid", agentId),
-				new NameValuePair("text", String.format("{\"content\": %s}", content)),
-				new NameValuePair("safe", "0")
-		};
-		post.setRequestBody(param);
-	    
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("{");
+        sb.append("\"touser\":" + "\"" + toUser + "\",");
+        sb.append("\"toparty\":" + "\"" + toParty + "\",");
+        sb.append("\"totag\":" + "\"" + toTag + "\",");
+        sb.append("\"msgtype\":" + "\"text\",");
+        sb.append("\"agentid\":" + agentId + ",");
+        sb.append("\"text\": {\"content\":\"" + content + "\"},");
+        sb.append("\"safe\":\"0\"");
+        sb.append("}");
+        logger.debug("the request body to be posted: " + sb.toString());
+		
+        InputStream stream;
+		try {
+			stream = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			post.releaseConnection();
+			return "";
+		}
+		RequestEntity entity = new InputStreamRequestEntity(stream);
+		post.setRequestEntity(entity);
+		
 	    try {
 	    	client.executeMethod(post);
+	    	
 	    	String response = new String(post.getResponseBodyAsString().getBytes("gbk"));
 	    	post.releaseConnection();
+	    	logger.debug("the response from weixin server: " + response);
+	    	
 	    	return response;
 	    } catch (IOException ex) {
 			logger.error("fail to send the weixin message: " + ex.getMessage());
 			post.releaseConnection();
 			return "";
 	    }
-		
 	}
 
 	@Override
@@ -196,10 +215,10 @@ public class WeixinSenderService extends AbstractSender {
 			
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
-				logger.error("fail to send the async weixin message");
+				logger.error("fail to send the sync weixin message");
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
-				logger.info("save the async weixin successfully");
+				logger.info("save the sync weixin successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -208,17 +227,17 @@ public class WeixinSenderService extends AbstractSender {
 				JsonObject jsonObj = jsonParser.parse(response).getAsJsonObject();
 				int errCode = jsonObj.get("errcode").getAsInt();
 				if (errCode == 0) {
-					logger.info("send the async weixin successfully");
+					logger.info("send the sync weixin successfully");
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
 					weixinRecordMapper.insert(record);
-					logger.info("save the async weixin successfully");
+					logger.info("save the sync weixin successfully");
 					
 					return SendResult.OK;
 				} else {
 					logger.error("get an error response from weixin server");
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 					weixinRecordMapper.insert(record);
-					logger.info("save the async weixin successfully");
+					logger.info("save the sync weixin successfully");
 					
 					return SendResult.FAILURE;
 				}
@@ -226,7 +245,7 @@ public class WeixinSenderService extends AbstractSender {
 				logger.error("get an unvalid response of sending weixin message: " + ex.getMessage());
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
-				logger.info("save the async weixin successfully");
+				logger.info("save the sync weixin successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -252,10 +271,10 @@ public class WeixinSenderService extends AbstractSender {
 			
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
-				logger.error("fail to send the sync weixin message");
+				logger.error("fail to send the async weixin message");
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
-				logger.info("save the sync weixin message successfully");
+				logger.info("save the async weixin message successfully");
 				
 				return;
 			}
@@ -268,11 +287,11 @@ public class WeixinSenderService extends AbstractSender {
 					
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 					weixinRecordMapper.insert(record);
-					logger.info("save the sync weixin message successfully");
+					logger.info("save the async weixin message successfully");
 				} else {
 					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
 					weixinRecordMapper.insert(record);
-					logger.info("save the sync weixin message successfully");
+					logger.info("save the async weixin message successfully");
 				}
 				
 			} catch (JsonSyntaxException ex) {
@@ -280,7 +299,7 @@ public class WeixinSenderService extends AbstractSender {
 				
 				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
 				weixinRecordMapper.insert(record);
-				logger.info("save the sync weixin message successfully");
+				logger.info("save the async weixin message successfully");
 			}
 		}
 	}

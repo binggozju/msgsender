@@ -22,6 +22,7 @@ public abstract class AbstractSender implements Sender {
 		executor.setMaxPoolSize(SenderConstants.MAX_POOL_SIZE);
 		executor.setKeepAliveSeconds(SenderConstants.KEEPALIVE_SECONDS);
 		executor.setQueueCapacity(SenderConstants.QUEUE_CAPACITY);
+		executor.initialize();
 	}
 	
 	public AbstractSender() {
