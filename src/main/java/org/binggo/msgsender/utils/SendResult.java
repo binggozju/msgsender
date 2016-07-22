@@ -1,4 +1,4 @@
-package org.binggo.msgsender.tools;
+package org.binggo.msgsender.utils;
 
 public enum SendResult {
 	OK (0), 

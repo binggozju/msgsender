@@ -1,14 +1,35 @@
 #!/bin/bash
+# ----------------------------------------------------
+# Description: used to send a message to msgsender.
+# ----------------------------------------------------
+
 
 HOST=http://localhost:8090
 
-curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"source": "msgsender-client", "subject":"mail sender of msgsender", "content": "a sync mail"}' $HOST/mail/sync
-#curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"source": "msgsender客户端", "subject":"mail sender of msgsender", "receivers": "ybzhan@ibenben.com", "content": "a sync mail"}' $HOST/mail/sync
 
-#curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"source": "msgsender-client", "subject":"mail sender of msgsender", "receivers": "ybzhan@ibenben.com;470138367@qq.com", "content": "an async mail"}' $HOST/mail/async
+mail_msg=$(cat <<EOF
+{
+"subject": "监控告警",
+"receivers": "ybzhan@ibenben.com",
+"content": "this is a mail message from msgsender",
 
-#curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '{"source": "msgsender-client", "receivers": "xxx", "content": "a sync weixin message"}' $HOST/weixin/sync
+"source": "监控平台"
+}
+EOF
+)
 
 
+weixin_msg=$(cat <<EOF
+{
+"receivers": "ybzhan",
+"content": "this is a weixin message",
+
+"source": "监控平台"
+}
+EOF
+)
 
 
+curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "$mail_msg" $HOST/mail/async 2> /dev/null
+
+curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "$weixin_msg" $HOST/weixin/async 2> /dev/null

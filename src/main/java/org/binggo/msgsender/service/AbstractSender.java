@@ -8,7 +8,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.binggo.msgsender.domain.Message;
-import org.binggo.msgsender.tools.SendResult;
+import org.binggo.msgsender.utils.SendResult;
 
 public abstract class AbstractSender implements Sender {
 	

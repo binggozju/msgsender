@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import org.binggo.msgsender.domain.Sms;
 import org.binggo.msgsender.service.SmsSenderService;
-import org.binggo.msgsender.tools.FeedBack;
+import org.binggo.msgsender.utils.FeedBack;
 
 @RestController
 @RequestMapping("/sms")

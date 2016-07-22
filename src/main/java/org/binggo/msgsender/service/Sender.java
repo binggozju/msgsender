@@ -1,7 +1,7 @@
 package org.binggo.msgsender.service;
 
 import org.binggo.msgsender.domain.Message;
-import org.binggo.msgsender.tools.SendResult;
+import org.binggo.msgsender.utils.SendResult;
 
 public interface Sender {
 	

@@ -9,6 +9,10 @@
 SUPERVISOR_LOG_FILE=/data0/logs/msgsender/supervisor.log
 MSGSENDER_LOG_FILE=/dev/null
 
+
+DIR=$(dirname `readlink -m $0`)
+cd $DIR/..
+
 function log() {
     local log_level=$1
     local log_msg=$2
@@ -21,8 +25,7 @@ if [ $EXIST -gt 0 ]; then
     log INFO "msgsender is running"
 else
     log ERROR "msgsender has stopped"
-    # use the correct location of msgsender-start.sh
-    nohup /your/path/msgsender-start.sh 2>&1 >> $MSGSENDER_LOG_FILE &
+    nohup ./bin/msgsender-start.sh 2>&1 > $MSGSENDER_LOG_FILE &
     log INFO "msgsender-supervisor has restarted msgsender"
 fi
 

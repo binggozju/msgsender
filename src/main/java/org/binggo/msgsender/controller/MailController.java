@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import org.binggo.msgsender.domain.Mail;
 import org.binggo.msgsender.service.MailSenderService;
-import org.binggo.msgsender.tools.FeedBack;
-import org.binggo.msgsender.tools.SendResult;
+import org.binggo.msgsender.utils.FeedBack;
+import org.binggo.msgsender.utils.SendResult;
 
 @RestController
 @RequestMapping("/mail")

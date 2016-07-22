@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import org.binggo.msgsender.domain.Sms;
+import org.binggo.msgsender.utils.SendResult;
 import org.binggo.msgsender.domain.Message;
-import org.binggo.msgsender.tools.SendResult;
 
 @Service
 @Configurable

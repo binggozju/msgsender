@@ -1,4 +1,4 @@
-package org.binggo.msgsender.tools;
+package org.binggo.msgsender.utils;
 
 public enum FeedBack {
 	OK (0, "ok"),

@@ -27,9 +27,9 @@ import com.google.gson.JsonObject;
 
 import org.binggo.msgsender.domain.Weixin;
 import org.binggo.msgsender.domain.Message;
-import org.binggo.msgsender.tools.SendResult;
 import org.binggo.msgsender.generate.mapper.WeixinRecordMapper;
 import org.binggo.msgsender.generate.model.WeixinRecord;
+import org.binggo.msgsender.utils.SendResult;
 
 @Service
 @Configurable

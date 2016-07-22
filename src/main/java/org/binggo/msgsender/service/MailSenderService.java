@@ -14,9 +14,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 
 import org.binggo.msgsender.domain.Mail;
 import org.binggo.msgsender.domain.Message;
-import org.binggo.msgsender.tools.SendResult;
 import org.binggo.msgsender.generate.mapper.MailRecordMapper;
 import org.binggo.msgsender.generate.model.MailRecord;
+import org.binggo.msgsender.utils.SendResult;
 
 @Service
 @Configurable
