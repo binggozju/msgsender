@@ -13,4 +13,4 @@ JAVA_OPTS="-Xms512m -Xmx1g"
 # configuration of msgsender
 MSGSENDER_OPTS="--spring.config.location=config/msgsender.properties"
 
-exec java $JAVA_OPTS -jar target/msgsender-0.1.0.jar $MSGSENDER_OPTS
+exec java $JAVA_OPTS -jar target/msgsender.jar $MSGSENDER_OPTS
