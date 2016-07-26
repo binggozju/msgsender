@@ -30,7 +30,7 @@ JAVA_OPTS="-Xms512m -Xmx1g"
 echo "JAVA_OPTS: ${JAVA_OPTS}"
 
 # configuration of msgsender
-MSGSENDER_OPTS="--spring.config.location=config/msgsender.properties,${ENV}.properties"
+MSGSENDER_OPTS="--spring.config.location=config/msgsender.properties,config/${ENV}.properties"
 echo "MSGSENDER_OPTS: ${MSGSENDER_OPTS}"
 
 if [ $ENV = local ]; then
