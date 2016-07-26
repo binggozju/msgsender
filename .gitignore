@@ -1,7 +1,15 @@
-logs/*
-target/*
-#config/msgsender.properties
+# config file
+config/local.properties
+config/pre-release.properties
+config/production.properties
 
+# logs
+logs/*
+
+# target
+target/*
+
+# others
 .classpath
 .project
 .settings
