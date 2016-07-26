@@ -141,7 +141,7 @@ public class WeixinSenderService extends AbstractSender {
 	    	
 	    	String response = new String(post.getResponseBodyAsString().getBytes("gbk"));
 	    	post.releaseConnection();
-	    	logger.debug("the response from weixin server: " + response);
+	    	logger.info("the response from weixin server: " + response);
 	    	
 	    	return response;
 	    } catch (IOException ex) {
