@@ -22,6 +22,10 @@ case $ENV in
 	;;
 esac
 
+# kill the old msgsender process
+ps -ef | grep msgsender.properties | grep -v 'grep' | awk '{print $2}' | xargs -I {} kill -9 {}
+
+
 DIR=$(dirname `readlink -m $0`)
 cd $DIR/..; pwd
 
