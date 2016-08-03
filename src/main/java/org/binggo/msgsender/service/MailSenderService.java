@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -32,8 +33,9 @@ public class MailSenderService extends AbstractSender {
 	@Autowired
 	private MailRecordMapper mailRecordMapper;
 	
-	public MailSenderService() {
-		super("mail-sender");
+	@Autowired
+	public MailSenderService(Environment env) {
+		super("mail-sender", env);
 	}
 	
 	@Autowired
@@ -70,7 +72,7 @@ public class MailSenderService extends AbstractSender {
 		if (mail.getSource() != null) {
 			record.setSource(mail.getSource());
 		} else {
-			record.setSource(SenderConstants.DEFAULT_SOURCE);
+			record.setSource(SenderConstants.SOURCE_DEFAULT);
 		}
 		if (mail.getSendTime() != 0) {
 			record.setSendTime(mail.getSendTime());
@@ -103,7 +105,7 @@ public class MailSenderService extends AbstractSender {
 				if (mail.getSource() != null) {
 					helper.setSubject(String.format("[%s] %s", mail.getSource(), mail.getSubject()));
 				} else {
-					helper.setSubject(String.format("[%s] %s", SenderConstants.DEFAULT_SOURCE, mail.getSubject()));
+					helper.setSubject(String.format("[%s] %s", SenderConstants.SOURCE_DEFAULT, mail.getSubject()));
 				}
 				
 				helper.setText(mail.getContent());
@@ -112,9 +114,9 @@ public class MailSenderService extends AbstractSender {
 				logger.info("send the sync mail successfully: " + mail.toString());
 				
 				// save the info about this mail to mysql
-				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
-				//mailRecordMapper.insert(record);
-				//logger.info("save the sync mail record successfully");
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
+				mailRecordMapper.insert(record);
+				logger.info("save the sync mail record successfully");
 				
 				return SendResult.OK;
 				
@@ -122,9 +124,9 @@ public class MailSenderService extends AbstractSender {
 				logger.error("fail to send mail: " + ex.getMessage());
 				
 				// save the info about this mail to mysql
-				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
-				//mailRecordMapper.insert(record);
-				//logger.info("save the sync mail record successfully");
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
+				mailRecordMapper.insert(record);
+				logger.info("save the sync mail record successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -151,7 +153,7 @@ public class MailSenderService extends AbstractSender {
 				if (mail.getSource() != null) {
 					helper.setSubject(String.format("[%s] %s", mail.getSource(), mail.getSubject()));
 				} else {
-					helper.setSubject(String.format("[%s] %s", SenderConstants.DEFAULT_SOURCE, mail.getSubject()));
+					helper.setSubject(String.format("[%s] %s", SenderConstants.SOURCE_DEFAULT, mail.getSubject()));
 				}
 				
 				helper.setText(mail.getContent());
@@ -160,17 +162,17 @@ public class MailSenderService extends AbstractSender {
 				logger.info("send the async mail successfully");
 				
 				// save the info about this mail to mysql
-				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
-				//mailRecordMapper.insert(record);
-				//logger.info("save the async mail record successfully");
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
+				mailRecordMapper.insert(record);
+				logger.info("save the async mail record successfully");
 				
 			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
 				
 				// save the info about this mail to mysql
-				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
-				//mailRecordMapper.insert(record);
-				//logger.info("save the async mail record successfully");
+				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
+				mailRecordMapper.insert(record);
+				logger.info("save the async mail record successfully");
 			}
 		}
 	}

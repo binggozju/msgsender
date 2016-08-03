@@ -13,7 +13,8 @@ public class MsgsenderApplication
 	private static final Logger logger = LoggerFactory.getLogger(MsgsenderApplication.class);
 
 	public static void main(String[] args) {
-		SpringApplication.run(MsgsenderApplication.class, args);
+		SpringApplication app = new SpringApplication(MsgsenderApplication.class);
+		app.run(args);
 		
 		logger.info("start msgsender service successfully.");
 	}

@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.binggo.msgsender.domain.Message;
 import org.binggo.msgsender.utils.SendResult;
@@ -16,21 +17,76 @@ public abstract class AbstractSender implements Sender {
 	
 	private ThreadPoolTaskExecutor executor;
 	
-	{
+	public AbstractSender(Environment env) {
+		name = "sender";
+		
 		executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(SenderConstants.CORE_POOL_SIZE);
-		executor.setMaxPoolSize(SenderConstants.MAX_POOL_SIZE);
-		executor.setKeepAliveSeconds(SenderConstants.KEEPALIVE_SECONDS);
-		executor.setQueueCapacity(SenderConstants.QUEUE_CAPACITY);
+		
+		Integer corePoolSize = env.getProperty("sender.threadpool.core-pool-size", Integer.class);
+		if (corePoolSize != null) {
+			executor.setCorePoolSize(corePoolSize);
+		} else {
+			executor.setCorePoolSize(SenderConstants.CORE_POOL_SIZE_DEFAULT);
+		}
+		
+		Integer maxPoolSize = env.getProperty("sender.threadpool.max-pool-size", Integer.class);
+		if (maxPoolSize != null) {
+			executor.setMaxPoolSize(maxPoolSize);
+		} else {
+			executor.setMaxPoolSize(SenderConstants.MAX_POOL_SIZE_DEFAULT);
+		}
+		
+		Integer keepAliveSeconds = env.getProperty("sender.threadpool.keepalive-seconds", Integer.class);
+		if (keepAliveSeconds != null) {
+			executor.setKeepAliveSeconds(keepAliveSeconds);
+		} else {
+			executor.setKeepAliveSeconds(SenderConstants.KEEPALIVE_SECONDS_DEFAULT);
+		}
+		
+		Integer queueCapacity = env.getProperty("sender.threadpool.queue-capacity", Integer.class);
+		if (queueCapacity != null) {
+			executor.setQueueCapacity(queueCapacity);
+		} else {
+			executor.setQueueCapacity(SenderConstants.QUEUE_CAPACITY_DEFAULT);
+		}
+		
 		executor.initialize();
 	}
 	
-	public AbstractSender() {
-		name = "sender";
-	}
-	
-	public AbstractSender(String name) {
+	public AbstractSender(String name, Environment env) {
 		this.name = name;
+		
+		executor = new ThreadPoolTaskExecutor();
+		
+		Integer corePoolSize = env.getProperty("sender.threadpool.core-pool-size", Integer.class);
+		if (corePoolSize != null) {
+			executor.setCorePoolSize(corePoolSize);
+		} else {
+			executor.setCorePoolSize(SenderConstants.CORE_POOL_SIZE_DEFAULT);
+		}
+		
+		Integer maxPoolSize = env.getProperty("sender.threadpool.max-pool-size", Integer.class);
+		if (maxPoolSize != null) {
+			executor.setMaxPoolSize(maxPoolSize);
+		} else {
+			executor.setMaxPoolSize(SenderConstants.MAX_POOL_SIZE_DEFAULT);
+		}
+		
+		Integer keepAliveSeconds = env.getProperty("sender.threadpool.keepalive-seconds", Integer.class);
+		if (keepAliveSeconds != null) {
+			executor.setKeepAliveSeconds(keepAliveSeconds);
+		} else {
+			executor.setKeepAliveSeconds(SenderConstants.KEEPALIVE_SECONDS_DEFAULT);
+		}
+		
+		Integer queueCapacity = env.getProperty("sender.threadpool.queue-capacity", Integer.class);
+		if (queueCapacity != null) {
+			executor.setQueueCapacity(queueCapacity);
+		} else {
+			executor.setQueueCapacity(SenderConstants.QUEUE_CAPACITY_DEFAULT);
+		}
+		
+		executor.initialize();
 	}
 
 	@Override
@@ -38,7 +94,7 @@ public abstract class AbstractSender implements Sender {
 		Future<SendResult> future = executor.submit(getSyncTask(message));
 		
 		try {
-			SendResult ret = future.get(SenderConstants.SEND_TIMEOUT, TimeUnit.SECONDS);
+			SendResult ret = future.get(SenderConstants.SEND_TIMEOUT_DEFAULT, TimeUnit.SECONDS);
 			return ret;
 		} catch (ExecutionException ex) {
 			return SendResult.FAILURE;

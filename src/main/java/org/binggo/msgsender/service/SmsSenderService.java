@@ -5,8 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-
+import org.springframework.core.env.Environment;
 import org.binggo.msgsender.domain.Sms;
 import org.binggo.msgsender.utils.SendResult;
 import org.binggo.msgsender.domain.Message;
@@ -17,11 +18,11 @@ public class SmsSenderService extends AbstractSender {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SmsSenderService.class);
 	
-	public SmsSenderService() {
-		super("sms-sender");
+	@Autowired
+	public SmsSenderService(Environment env) {
+		super("sms-sender", env);
 	}
 	
-
 	@Override
 	protected Callable<SendResult> getSyncTask(Message message) {
 		if (message != null && message instanceof Sms) {
