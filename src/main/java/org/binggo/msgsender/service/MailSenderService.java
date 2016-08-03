@@ -112,9 +112,9 @@ public class MailSenderService extends AbstractSender {
 				logger.info("send the sync mail successfully: " + mail.toString());
 				
 				// save the info about this mail to mysql
-				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
-				mailRecordMapper.insert(record);
-				logger.info("save the sync mail record successfully");
+				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
+				//mailRecordMapper.insert(record);
+				//logger.info("save the sync mail record successfully");
 				
 				return SendResult.OK;
 				
@@ -122,9 +122,9 @@ public class MailSenderService extends AbstractSender {
 				logger.error("fail to send mail: " + ex.getMessage());
 				
 				// save the info about this mail to mysql
-				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
-				mailRecordMapper.insert(record);
-				logger.info("save the sync mail record successfully");
+				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
+				//mailRecordMapper.insert(record);
+				//logger.info("save the sync mail record successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -160,17 +160,17 @@ public class MailSenderService extends AbstractSender {
 				logger.info("send the async mail successfully");
 				
 				// save the info about this mail to mysql
-				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
-				mailRecordMapper.insert(record);
-				logger.info("save the async mail record successfully");
+				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.OK.getCode());
+				//mailRecordMapper.insert(record);
+				//logger.info("save the async mail record successfully");
 				
 			} catch (Exception ex) {
 				logger.error("fail to send mail: " + ex.getMessage());
 				
 				// save the info about this mail to mysql
-				MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
-				mailRecordMapper.insert(record);
-				logger.info("save the async mail record successfully");
+				//MailRecord record = MailSenderService.generateMailRecord(mail, SendResult.FAILURE.getCode());
+				//mailRecordMapper.insert(record);
+				//logger.info("save the async mail record successfully");
 			}
 		}
 	}

@@ -216,9 +216,9 @@ public class WeixinSenderService extends AbstractSender {
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
 				logger.error("fail to send the sync weixin message");
-				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
-				weixinRecordMapper.insert(record);
-				logger.info("save the sync weixin successfully");
+				//WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				//weixinRecordMapper.insert(record);
+				//logger.info("save the sync weixin successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -228,24 +228,24 @@ public class WeixinSenderService extends AbstractSender {
 				int errCode = jsonObj.get("errcode").getAsInt();
 				if (errCode == 0) {
 					logger.info("send the sync weixin successfully");
-					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
-					weixinRecordMapper.insert(record);
-					logger.info("save the sync weixin successfully");
+					//WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
+					//weixinRecordMapper.insert(record);
+					//logger.info("save the sync weixin successfully");
 					
 					return SendResult.OK;
 				} else {
 					logger.error("get an error response from weixin server");
-					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
-					weixinRecordMapper.insert(record);
-					logger.info("save the sync weixin successfully");
+					//WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+					//weixinRecordMapper.insert(record);
+					//logger.info("save the sync weixin successfully");
 					
 					return SendResult.FAILURE;
 				}
 			} catch (JsonSyntaxException ex) {
 				logger.error("get an unvalid response of sending weixin message: " + ex.getMessage());
-				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
-				weixinRecordMapper.insert(record);
-				logger.info("save the sync weixin successfully");
+				//WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				//weixinRecordMapper.insert(record);
+				//logger.info("save the sync weixin successfully");
 				
 				return SendResult.FAILURE;
 			}
@@ -272,9 +272,9 @@ public class WeixinSenderService extends AbstractSender {
 			String response = sendMessage(toUser, "", "", content);
 			if (response.isEmpty()) {
 				logger.error("fail to send the async weixin message");
-				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
-				weixinRecordMapper.insert(record);
-				logger.info("save the async weixin message successfully");
+				//WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				//weixinRecordMapper.insert(record);
+				//logger.info("save the async weixin message successfully");
 				
 				return;
 			}
@@ -285,21 +285,21 @@ public class WeixinSenderService extends AbstractSender {
 				if (errCode != 0) {
 					logger.error("fail to send the async weixin message");
 					
-					WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
-					weixinRecordMapper.insert(record);
-					logger.info("save the async weixin message successfully");
+					//WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+					//weixinRecordMapper.insert(record);
+					//logger.info("save the async weixin message successfully");
 				} else {
-					WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
-					weixinRecordMapper.insert(record);
-					logger.info("save the async weixin message successfully");
+					//WeixinRecord record = generateWeixinRecord(weixin, SendResult.OK.getCode());
+					//weixinRecordMapper.insert(record);
+					//logger.info("save the async weixin message successfully");
 				}
 				
 			} catch (JsonSyntaxException ex) {
 				logger.error("get an unvalid response of sending weixin message: " + ex.getMessage());
 				
-				WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
-				weixinRecordMapper.insert(record);
-				logger.info("save the async weixin message successfully");
+				//WeixinRecord record = generateWeixinRecord(weixin, SendResult.FAILURE.getCode());
+				//weixinRecordMapper.insert(record);
+				//logger.info("save the async weixin message successfully");
 			}
 		}
 	}
