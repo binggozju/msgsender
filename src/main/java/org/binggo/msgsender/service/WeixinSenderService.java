@@ -276,6 +276,8 @@ public class WeixinSenderService extends AbstractSender {
 				//weixinRecordMapper.insert(record);
 				//logger.info("save the async weixin message successfully");
 				
+				
+				
 				return;
 			}
 			

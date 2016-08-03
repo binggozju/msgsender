@@ -40,7 +40,7 @@ public class Weixin implements Message {
 	
 	@Override
 	public String toString() {
-		return String.format("Weinxin [receivers=%s, content=%s, soruce=%s]", receivers, content, source);
+		return String.format("Weinxin [receivers=%s, content=%s, source=%s]", receivers, content, source);
 	}
 
 }
