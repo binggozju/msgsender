@@ -13,11 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
@@ -38,8 +35,6 @@ import org.binggo.msgsender.utils.SendResult;
 
 @Service
 @Configurable
-@Configuration
-@EnableScheduling
 public class WeixinSenderService extends AbstractSender {
 	
 	private static final Logger logger = LoggerFactory.getLogger(WeixinSenderService.class);
@@ -49,22 +44,18 @@ public class WeixinSenderService extends AbstractSender {
 	private static final String SEND_MESSAGE_URL = "https://qyapi.weixin.qq.com/cgi-bin/"
 			+ "message/send?access_token=%s";
 	
-	@Value("${weixin.corpid}")
 	private String corpId;
-	
-	@Value("${weixin.corpsecret}")
 	private String corpSecret;
-	
-	@Value("${weixin.agentid}")
 	private String agentId;
+	
+	// you should not access this variable directly, use getToken() instead
+	private static volatile String accessToken = "";
+	private ReadWriteLock tokenRWLock;
+	private ThreadPoolTaskScheduler taskScheduler;
 	
 	private HttpClient client;
 	private JsonParser jsonParser;
 
-	// you should not access this variable directly, use getToken() instead
-	private static volatile String accessToken = "";
-	ReadWriteLock tokenRWLock;
-	
 	@Autowired
 	private WeixinRecordMapper weixinRecordMapper;
 	
@@ -75,6 +66,22 @@ public class WeixinSenderService extends AbstractSender {
 		jsonParser = new JsonParser();
 		
 		tokenRWLock = new ReentrantReadWriteLock();
+		
+		corpId = env.getProperty("weixin.corpid");
+		corpSecret = env.getProperty("weixin.corpsecret");
+		agentId = env.getProperty("weixin.agentid");
+		
+		taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.setPoolSize(SenderConstants.SCHEDULE_POOL_SIZE_DEFAULT);
+		taskScheduler.initialize();
+		
+		// start as soon as possible to update access token
+		taskScheduler.scheduleAtFixedRate(new Runnable() {
+			public void run() {
+				updateAccessToken();
+			}
+		}, 
+		SenderConstants.TOKEN_UPDATE_SECONDS_DEFAULT * 1000 );
 	}
 	
 	private String getAccessToken() {
@@ -129,8 +136,7 @@ public class WeixinSenderService extends AbstractSender {
 	/**
 	 * update the access token every half an hour
 	 */
-	@Scheduled(fixedRate=1800000)
-	public void updateAccessToken() {
+	private void updateAccessToken() {
 		NameValuePair[] param = {
 				new NameValuePair("corpid", corpId),
 				new NameValuePair("corpsecret", corpSecret)

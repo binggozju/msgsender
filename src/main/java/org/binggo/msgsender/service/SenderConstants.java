@@ -14,7 +14,9 @@ public final class SenderConstants {
 	public static String SOURCE_DEFAULT = "监控平台";
 	
 	// the access token in WeixinSenderService will be updated every hour
-	//public static int TOKEN_UPDATE_SECONDS_DEFAULT = 3600;
+	public static int TOKEN_UPDATE_SECONDS_DEFAULT = 1800;
+	// the size of thread pool for ThreadPoolTaskScheduler
+	public static int SCHEDULE_POOL_SIZE_DEFAULT = 1;
 	
 	private SenderConstants() {
 		// disable explicit object creation
