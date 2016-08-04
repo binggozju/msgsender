@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.RequestEntity;
@@ -62,7 +63,7 @@ public class WeixinSenderService extends AbstractSender {
 	@Autowired
 	public WeixinSenderService(Environment env) {
 		super("weixin-sender", env);
-		client = new HttpClient();
+		client = new HttpClient(new MultiThreadedHttpConnectionManager());
 		jsonParser = new JsonParser();
 		
 		tokenRWLock = new ReentrantReadWriteLock();
@@ -99,7 +100,6 @@ public class WeixinSenderService extends AbstractSender {
 							};
 					
 					PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
-					post.releaseConnection();
 					post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 					post.setRequestBody(param);
 					DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
@@ -110,6 +110,8 @@ public class WeixinSenderService extends AbstractSender {
 						response = new String(post.getResponseBodyAsString().getBytes("gbk"));
 					} catch(IOException ex) {
 						logger.error("fail to initialize the access token: " + ex.getMessage());
+					} finally {
+						post.releaseConnection();
 					}
 					
 					try {
@@ -122,7 +124,7 @@ public class WeixinSenderService extends AbstractSender {
 						logger.error("fail to initialize the access token: " + ex.getMessage());
 					}
 					
-					post.releaseConnection();
+					
 				}
 			}
 			
@@ -143,7 +145,6 @@ public class WeixinSenderService extends AbstractSender {
 				};
 		
 		PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
-		post.releaseConnection();
 		post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 		post.setRequestBody(param);
 		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
@@ -154,6 +155,8 @@ public class WeixinSenderService extends AbstractSender {
 			response = new String(post.getResponseBodyAsString().getBytes("gbk"));
 		} catch(IOException ex) {
 			logger.error("fail to update the access token: " + ex.getMessage());
+		} finally {
+			post.releaseConnection();
 		}
 		
 		try {
@@ -169,8 +172,6 @@ public class WeixinSenderService extends AbstractSender {
 		} catch (JsonSyntaxException ex) {
 			logger.error("fail to update the access token: " + ex.getMessage());
 		}
-		
-		post.releaseConnection();
 	}
 	
 	/**
@@ -211,23 +212,21 @@ public class WeixinSenderService extends AbstractSender {
 		
 		String url = String.format(SEND_MESSAGE_URL, token);
 		PostMethod post = new PostMethod(url);
-		post.releaseConnection();
 		post.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 		post.setRequestEntity(entity);
 		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
 		
 	    try {
-	    	client.executeMethod(post);
-	    	
+	    	client.executeMethod(post);	
 	    	String response = new String(post.getResponseBodyAsString().getBytes("gbk"));
-	    	post.releaseConnection();
 	    	logger.info("the response from weixin server: " + response);
 	    	
 	    	return response;
 	    } catch (IOException ex) {
 			logger.error("fail to send the weixin message: " + ex.getMessage());
-			post.releaseConnection();
 			return "";
+	    } finally {
+	    	post.releaseConnection();
 	    }
 	}
 
