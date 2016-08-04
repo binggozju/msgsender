@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
@@ -33,6 +38,8 @@ import org.binggo.msgsender.utils.SendResult;
 
 @Service
 @Configurable
+@Configuration
+@EnableScheduling
 public class WeixinSenderService extends AbstractSender {
 	
 	private static final Logger logger = LoggerFactory.getLogger(WeixinSenderService.class);
@@ -43,16 +50,20 @@ public class WeixinSenderService extends AbstractSender {
 			+ "message/send?access_token=%s";
 	
 	@Value("${weixin.corpid}")
-	private String corpId;		// 企业id
+	private String corpId;
 	
 	@Value("${weixin.corpsecret}")
-	private String corpSecret;	// 管理组的凭证秘钥
+	private String corpSecret;
 	
 	@Value("${weixin.agentid}")
-	private String agentId;	// 企业应用的ID，一般使用“企业小助手”，对应的id为0
+	private String agentId;
 	
 	private HttpClient client;
 	private JsonParser jsonParser;
+
+	// you should not access this variable directly, use getToken() instead
+	private static volatile String accessToken = "";
+	ReadWriteLock tokenRWLock;
 	
 	@Autowired
 	private WeixinRecordMapper weixinRecordMapper;
@@ -62,57 +73,114 @@ public class WeixinSenderService extends AbstractSender {
 		super("weixin-sender", env);
 		client = new HttpClient();
 		jsonParser = new JsonParser();
+		
+		tokenRWLock = new ReentrantReadWriteLock();
 	}
 	
 	private String getAccessToken() {
-		PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
-		post.releaseConnection();
-		post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
+		String token = "";
 		
-		logger.debug(String.format("corpid=%s, corpsecret=%s", corpId, corpSecret));
+		tokenRWLock.readLock().lock();
+		
+		// double check
+		if (accessToken == "") {
+			synchronized(this) {
+				if (accessToken == "") {
+					NameValuePair[] param = {
+							new NameValuePair("corpid", corpId),
+							new NameValuePair("corpsecret", corpSecret)
+							};
+					
+					PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
+					post.releaseConnection();
+					post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+					post.setRequestBody(param);
+					DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
+					
+					String response = "";
+					try {
+						client.executeMethod(post);
+						response = new String(post.getResponseBodyAsString().getBytes("gbk"));
+					} catch(IOException ex) {
+						logger.error("fail to initialize the access token: " + ex.getMessage());
+					}
+					
+					try {
+						if (response != "") {
+							JsonObject jsonObj = jsonParser.parse(response).getAsJsonObject();
+							accessToken = jsonObj.get("access_token").getAsString();
+							logger.info("initialize the access token successfully");
+						}
+					} catch (JsonSyntaxException ex) {
+						logger.error("fail to initialize the access token: " + ex.getMessage());
+					}
+					
+					post.releaseConnection();
+				}
+			}
+			
+		}
+		
+		token = accessToken;
+		tokenRWLock.readLock().unlock();
+		return token;
+	}
+	
+	/**
+	 * update the access token every half an hour
+	 */
+	@Scheduled(fixedRate=1800000)
+	public void updateAccessToken() {
 		NameValuePair[] param = {
 				new NameValuePair("corpid", corpId),
 				new NameValuePair("corpsecret", corpSecret)
 				};
+		
+		PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
+		post.releaseConnection();
+		post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 		post.setRequestBody(param);
+		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
 		
 		String response = "";
 		try {
 			client.executeMethod(post);
 			response = new String(post.getResponseBodyAsString().getBytes("gbk"));
 		} catch(IOException ex) {
-			logger.error("execute post method to get access token failed: " + ex.getMessage());
-			post.releaseConnection();
-			return "";
+			logger.error("fail to update the access token: " + ex.getMessage());
 		}
 		
 		try {
-			JsonObject jsonObj = jsonParser.parse(response).getAsJsonObject();
-			String accessToken = jsonObj.get("access_token").getAsString();
-			post.releaseConnection();
-			return accessToken;
+			if (response != "") {
+				JsonObject jsonObj = jsonParser.parse(response).getAsJsonObject();
+			
+				tokenRWLock.writeLock().lock();
+				accessToken = jsonObj.get("access_token").getAsString();
+				tokenRWLock.writeLock().unlock();
+			
+				logger.info("update the access token successfully");
+			}
 		} catch (JsonSyntaxException ex) {
-			logger.error("fail to parse http response of getting access token: " + ex.getMessage());
-			post.releaseConnection();
-			return "";
+			logger.error("fail to update the access token: " + ex.getMessage());
 		}
-
+		
+		post.releaseConnection();
 	}
 	
+	/**
+	 * @param toUser
+	 * @param toParty
+	 * @param toTag
+	 * @param content
+	 * @return response form weixin servers
+	 */
 	private String sendMessage(String toUser, String toParty, String toTag, String content) {
-		String accessToken = getAccessToken();
-		if (accessToken.isEmpty()) {
+		String token = getAccessToken();
+		if (token == "") {
 			logger.error("fail to get the access token");
 			return "";
 		}
-		logger.debug(String.format("Access Token: %s", accessToken));
-		
-		String url = String.format(SEND_MESSAGE_URL, accessToken);
-		PostMethod post = new PostMethod(url);
-		post.releaseConnection();
-		post.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
+		logger.debug(String.format("Access Token: %s", token));	
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append("{");
@@ -131,11 +199,16 @@ public class WeixinSenderService extends AbstractSender {
 			stream = new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			post.releaseConnection();
 			return "";
 		}
 		RequestEntity entity = new InputStreamRequestEntity(stream);
+		
+		String url = String.format(SEND_MESSAGE_URL, token);
+		PostMethod post = new PostMethod(url);
+		post.releaseConnection();
+		post.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 		post.setRequestEntity(entity);
+		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
 		
 	    try {
 	    	client.executeMethod(post);

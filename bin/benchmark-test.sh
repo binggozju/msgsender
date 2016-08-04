@@ -14,6 +14,7 @@ function send_weixin() {
 for((i=1; i<= $COUNT; i++)); do
 	echo "$i"
 	send_weixin $i
+	echo
 done
 
 echo "complete the benchmark test."
