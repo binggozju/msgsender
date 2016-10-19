@@ -20,6 +20,7 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.DefaultHttpParams;
@@ -94,24 +95,23 @@ public class WeixinSenderService extends AbstractSender {
 		if (accessToken == "") {
 			synchronized(this) {
 				if (accessToken == "") {
-					NameValuePair[] param = {
+					NameValuePair[] params = {
 							new NameValuePair("corpid", corpId),
 							new NameValuePair("corpsecret", corpSecret)
 							};
 					
-					PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
-					post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-					post.setRequestBody(param);
-					DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
+					GetMethod getMethod = new GetMethod(ACCESS_TOKEN_URL);
+					getMethod.setQueryString(params);
+					getMethod.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 					
 					String response = "";
 					try {
-						client.executeMethod(post);
-						response = new String(post.getResponseBodyAsString().getBytes("gbk"));
+						client.executeMethod(getMethod);
+						response = new String(getMethod.getResponseBodyAsString().getBytes("utf-8"));
 					} catch(IOException ex) {
 						logger.error("fail to initialize the access token: " + ex.getMessage());
 					} finally {
-						post.releaseConnection();
+						getMethod.releaseConnection();
 					}
 					
 					try {
@@ -139,24 +139,23 @@ public class WeixinSenderService extends AbstractSender {
 	 * update the access token every half an hour
 	 */
 	private void updateAccessToken() {
-		NameValuePair[] param = {
+		NameValuePair[] params = {
 				new NameValuePair("corpid", corpId),
 				new NameValuePair("corpsecret", corpSecret)
 				};
 		
-		PostMethod post = new PostMethod(ACCESS_TOKEN_URL);
-		post.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
-		post.setRequestBody(param);
-		DefaultHttpParams.getDefaultParams().setParameter("http.protocol.cookie-policy", CookiePolicy.BROWSER_COMPATIBILITY);
+		GetMethod getMethod = new GetMethod(ACCESS_TOKEN_URL);
+		getMethod.setQueryString(params);
+		getMethod.setRequestHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 		
 		String response = "";
 		try {
-			client.executeMethod(post);
-			response = new String(post.getResponseBodyAsString().getBytes("gbk"));
+			client.executeMethod(getMethod);
+			response = new String(getMethod.getResponseBodyAsString().getBytes("utf-8"));
 		} catch(IOException ex) {
 			logger.error("fail to update the access token: " + ex.getMessage());
 		} finally {
-			post.releaseConnection();
+			getMethod.releaseConnection();
 		}
 		
 		try {

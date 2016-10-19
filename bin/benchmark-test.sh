@@ -5,8 +5,7 @@
 
 COUNT=2
 
-HOST=http://121.40.100.225:8090
-#HOST=http://localhost:8090
+HOST=http://localhost:8090
 
 function send_weixin() {
 	curl -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{\"receivers\": \"ybzhan\", \"content\": \"this is $1-th message\"}" $HOST/weixin/async 2> /dev/null
